@@ -1,3 +1,9 @@
+---
+title: "Mongo DB Main"
+date: "02-17-2023"
+slug: "another-mongo-db-post"
+---
+
 MongoDB
 https://www.youtube.com/watch?v=ofme2o29ngU&t=131s
 
