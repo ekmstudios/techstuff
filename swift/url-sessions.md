@@ -1,4 +1,11 @@
-Networking with URLSession
+---
+title: "URLSessions"
+date: "2023-09-03"
+slug: "swift-url-session"
+navTitle: "Swift URLSession"
+---
+
+## Networking with URLSession
 
 Concurrency - doing multiple things at once
 DoSomething()
