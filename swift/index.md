@@ -1,1 +1,11 @@
-Main index page for swift stuff
+---
+title: "Swift Main"
+date: "2023-09-03"
+slug: "another-swift-post"
+navTitle: "Swift"
+---
+
+Swift main page
+
+## Swift Heading 2
+
