@@ -1,5 +1,20 @@
 # Gatsby Notes
 
+## Additional Resources
+
+- [Gatsby Node APIs](https://www.gatsbyjs.com/docs/reference/config-files/gatsby-node/)
+- [Learning Gatsby - LinkedIn Learning](https://www.linkedin.com/learning/learning-gatsby-14442452/generate-pages-from-markdown-files?resume=false)
+- [Learning Gatsby - LinkedIn Learning Repo](https://github.com/LinkedInLearning/learning-gatsby-3156789/blob/main/src/templates/article.js)
+- [Adding Dynamic images from Data](https://www.gatsbyjs.com/docs/tutorial/getting-started/part-7/)
+- [Creating and Modifying pages](https://www.gatsbyjs.com/docs/creating-and-modifying-pages/#creating-pages-in-gatsby-nodejs)
+- [Generating pages in Gatsby from two sources of mdx files using graphql](https://stackoverflow.com/questions/75399285/generating-pages-in-gatsby-from-two-sources-of-mdx-files-using-graphql)
+
+gatsby-source-git
+https://www.gatsbyjs.com/plugins/gatsby-source-git/
+
+gatsby-plugin-mdx-source-name
+https://www.gatsbyjs.com/plugins/gatsby-plugin-mdx-source-name/
+
 Prerequisites
 - HTML
 - CSS
