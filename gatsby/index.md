@@ -35,3 +35,31 @@ $ gatsby clean
 
 Breaking Down a Gatsby Site
 Start from scratch
+
+
+How to Build and Host a React/Gatsby Portfolio Website
+1. Install Git
+
+2. Install Node JS
+
+3. Install Gatsby-CLI
+- open terminal
+- 
+
+4. Clone the portfolio starter
+
+https://www.gatsbyjs.com/starters/cobidev/gatsby-simplefolio
+
+5. Running the portfolio locally
+
+
+6. Customizing the starter
+
+
+7. The custom portfolio
+
+
+8. Pushing to Github
+
+
+9. Hosting
