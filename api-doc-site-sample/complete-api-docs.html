@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management API Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .rotate-90 {
+            transform: rotate(90deg);
+        }
+        .transition-transform {
+            transition: transform 0.2s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-80 bg-white shadow-lg flex flex-col">
+            <div class="p-6 border-b">
+                <h1 class="text-2xl font-bold text-gray-900">Task Management API</h1>
+                <p class="text-sm text-gray-600">v1.2.0</p>
+            </div>
+            
+            <nav class="flex-1 overflow-y-auto sidebar-scroll p-4">
+                <button onclick="showOverview()" class="w-full text-left py-2 px-4 rounded-lg mb-2 transition-colors hover:bg-gray-100" id="overview-btn">
+                    <span class="font-medium">Overview</span>
+                </button>
+                
+                <!-- API Groups -->
+                <div id="api-groups"></div>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <div id="content" class="p-8 max-w-5xl mx-auto">
+                <!-- Content will be dynamically loaded here -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // OpenAPI Spec data
+        const apiSpec = {
+            "openapi": "3.0.3",
+            "info": {
+                "title": "Task Management API",
+                "description": "A comprehensive API for managing tasks, users, and projects with full CRUD operations and authentication.",
+                "version": "1.2.0",
+                "contact": {
+                    "name": "API Support",
+                    "email": "support@taskmanager.com",
+                    "url": "https://taskmanager.com/support"
+                },
+                "license": {
+                    "name": "MIT",
+                    "url": "https://opensource.org/licenses/MIT"
+                },
+                "termsOfService": "https://taskmanager.com/terms"
+            },
+            "servers": [
+                {
+                    "url": "https://api.taskmanager.com/v1",
+                    "description": "Production server"
+                },
+                {
+                    "url": "https://staging-api.taskmanager.com/v1",
+                    "description": "Staging server"
+                },
+                {
+                    "url": "http://localhost:3000/v1",
+                    "description": "Development server"
+                }
+            ],
+            "paths": {
+                "/auth/login": {
+                    "post": {
+                        "tags": ["Authentication"],
+                        "summary": "User login",
+                        "description": "Authenticate user and return access token",
+                        "operationId": "loginUser",
+                        "requestBody": {
+                            "required": true,
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/LoginRequest"
+                                    }
+                                }
+                            }
+                        },
+                        "responses": {
+                            "200": {
+                                "description": "Login successful",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/AuthResponse"
+                                        }
+                                    }
+                                }
+                            },
+                            "401": {
+                                "description": "Invalid credentials",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Error"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "/users": {
+                    "get": {
+                        "tags": ["Users"],
+                        "summary": "Get all users",
+                        "description": "Retrieve a paginated list of users",
+                        "operationId": "getUsers",
+                        "security": [{"bearerAuth": []}],
+                        "parameters": [
+                            {
+                                "name": "page",
+                                "in": "query",
+                                "description": "Page number",
+                                "required": false,
+                                "schema": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "default": 1
+                                }
+                            },
+                            {
+                                "name": "limit",
+                                "in": "query",
+                                "description": "Number of users per page",
+                                "required": false,
+                                "schema": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 100,
+                                    "default": 20
+                                }
+                            }
+                        ],
+                        "responses": {
+                            "200": {
+                                "description": "Users retrieved successfully",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/UsersResponse"
+                                        }
+                                    }
+                                }
+                            },
+                            "401": {
+                                "$ref": "#/components/responses/UnauthorizedError"
+                            }
+                        }
+                    },
+                    "post": {
+                        "tags": ["Users"],
+                        "summary": "Create a new user",
+                        "description": "Create a new user account",
+                        "operationId": "createUser",
+                        "security": [{"bearerAuth": []}],
+                        "requestBody": {
+                            "required": true,
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/CreateUserRequest"
+                                    }
+                                }
+                            }
+                        },
+                        "responses": {
+                            "201": {
+                                "description": "User created successfully",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    }
+                                }
+                            },
+                            "400": {
+                                "$ref": "#/components/responses/ValidationError"
+                            },
+                            "401": {
+                                "$ref": "#/components/responses/UnauthorizedError"
+                            }
+                        }
+                    }
+                },
+                "/users/{userId}": {
+                    "get": {
+                        "tags": ["Users"],
+                        "summary": "Get user by ID",
+                        "description": "Retrieve a specific user by their ID",
+                        "operationId": "getUserById",
+                        "security": [{"bearerAuth": []}],
+                        "parameters": [
+                            {
+                                "$ref": "#/components/parameters/UserId"
+                            }
+                        ],
+                        "responses": {
+                            "200": {
+                                "description": "User retrieved successfully",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    }
+                                }
+                            },
+                            "404": {
+                                "$ref": "#/components/responses/NotFoundError"
+                            },
+                            "401": {
+                                "$ref": "#/components/responses/UnauthorizedError"
+                            }
+                        }
+                    },
+                    "put": {
+                        "tags": ["Users"],
+                        "summary": "Update user",
+                        "description": "Update an existing user",
+                        "operationId": "updateUser",
+                        "security": [{"bearerAuth": []}],
+                        "parameters": [
+                            {
+                                "$ref": "#/components/parameters/UserId"
+                            }
+                        ],
+                        "requestBody": {
+                            "required": true,
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/UpdateUserRequest"
+                                    }
+                                }
+                            }
+                        },
+                        "responses": {
+                            "200": {
+                                "description": "User updated successfully",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    }
+                                }
+                            },
+                            "400": {
+                                "$ref": "#/components/responses/ValidationError"
+                            },
+                            "404": {
+                                "$ref": "#/components/responses/NotFoundError"
+                            },
+                            "401": {
+                                "$ref": "#/components/responses/UnauthorizedError"
+                            }
+                        }
+                    },
+                    "delete": {
+                        "tags": ["Users"],
+                        "summary": "Delete user",
+                        "description": "Delete a user account",
+                        "operationId": "deleteUser",
+                        "security": [{"bearerAuth": []}],
+                        "parameters": [
+                            {
+                                "$ref": "#/components/parameters/UserId"
+                            }
+                        ],
+                        "responses": {
+                            "204": {
+                                "description": "User deleted successfully"
+                            },
+                            "404": {
+                                "$ref": "#/components/responses/NotFoundError"
+                            },
+                            "401": {
+                                "$ref": "#/components/responses/UnauthorizedError"
+                            }
+                        }
+                    }
+                },
+                "/tasks": {
+                    "get": {
+                        "tags": ["Tasks"],
+                        "summary": "Get all tasks",
+                        "description": "Retrieve a filtered and paginated list of tasks",
+                        "operationId": "getTasks",
+                        "security": [{"bearerAuth": []}],
+                        "parameters": [
+                            {
+                                "name": "status",
+                                "in": "query",
+                                "description": "Filter by task status",
+                                "required": false,
+                                "schema": {
+                                    "$ref": "#/components/schemas/TaskStatus"
+                                }
+                            },
+                            {
+                                "name": "assigneeId",
+                                "in": "query",
+                                "description": "Filter by assignee ID",
+                                "required": false,
+                                "schema": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                }
+                            },
+                            {
+                                "name": "page",
+                                "in": "query",
+                                "description": "Page number",
+                                "required": false,
+                                "schema": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "default": 1
+                                }
+                            },
+                            {
+                                "name": "limit",
+                                "in": "query",
+                                "description": "Number of tasks per page",
+                                "required": false,
+                                "schema": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 100,
+                                    "default": 20
+                                }
+                            }
+                        ],
+                        "responses": {
+                            "200": {
+                                "description": "Tasks retrieved successfully",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/TasksResponse"
+                                        }
+                                    }
+                                }
+                            },
+                            "401": {
+                                "$ref": "#/components/responses/UnauthorizedError"
+                            }
+                        }
+                    },
+                    "post": {
+                        "tags": ["Tasks"],
+                        "summary": "Create a new task",
+                        "description": "Create a new task",
+                        "operationId": "createTask",
+                        "security": [{"bearerAuth": []}],
+                        "requestBody": {
+                            "required": true,
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/CreateTaskRequest"
+                                    }
+                                }
+                            }
+                        },
+                        "responses": {
+                            "201": {
+                                "description": "Task created successfully",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Task"
+                                        }
+                                    }
+                                }
+                            },
+                            "400": {
+                                "$ref": "#/components/responses/ValidationError"
+                            },
+                            "401": {
+                                "$ref": "#/components/responses/UnauthorizedError"
+                            }
+                        }
+                    }
+                },
+                "/tasks/{taskId}": {
+                    "get": {
+                        "tags": ["Tasks"],
+                        "summary": "Get task by ID",
+                        "description": "Retrieve a specific task by its ID",
+                        "operationId": "getTaskById",
+                        "security": [{"bearerAuth": []}],
+                        "parameters": [
+                            {
+                                "$ref": "#/components/parameters/TaskId"
+                            }
+                        ],
+                        "responses": {
+                            "200": {
+                                "description": "Task retrieved successfully",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Task"
+                                        }
+                                    }
+                                }
+                            },
+                            "404": {
+                                "$ref": "#/components/responses/NotFoundError"
+                            },
+                            "401": {
+                                "$ref": "#/components/responses/UnauthorizedError"
+                            }
+                        }
+                    },
+                    "put": {
+                        "tags": ["Tasks"],
+                        "summary": "Update task",
+                        "description": "Update an existing task",
+                        "operationId": "updateTask",
+                        "security": [{"bearerAuth": []}],
+                        "parameters": [
+                            {
+                                "$ref": "#/components/parameters/TaskId"
+                            }
+                        ],
+                        "requestBody": {
+                            "required": true,
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/UpdateTaskRequest"
+                                    }
+                                }
+                            }
+                        },
+                        "responses": {
+                            "200": {
+                                "description": "Task updated successfully",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Task"
+                                        }
+                                    }
+                                }
+                            },
+                            "400": {
+                                "$ref": "#/components/responses/ValidationError"
+                            },
+                            "404": {
+                                "$ref": "#/components/responses/NotFoundError"
+                            },
+                            "401": {
+                                "$ref": "#/components/responses/UnauthorizedError"
+                            }
+                        }
+                    },
+                    "delete": {
+                        "tags": ["Tasks"],
+                        "summary": "Delete task",
+                        "description": "Delete a task",
+                        "operationId": "deleteTask",
+                        "security": [{"bearerAuth": []}],
+                        "parameters": [
+                            {
+                                "$ref": "#/components/parameters/TaskId"
+                            }
+                        ],
+                        "responses": {
+                            "204": {
+                                "description": "Task deleted successfully"
+                            },
+                            "404": {
+                                "$ref": "#/components/responses/NotFoundError"
+                            },
+                            "401": {
+                                "$ref": "#/components/responses/UnauthorizedError"
+                            }
+                        }
+                    }
+                }
+            },
+            "components": {
+                "securitySchemes": {
+                    "bearerAuth": {
+                        "type": "http",
+                        "scheme": "bearer",
+                        "bearerFormat": "JWT"
+                    }
+                },
+                "parameters": {
+                    "UserId": {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    "TaskId": {
+                        "name": "taskId",
+                        "in": "path",
+                        "description": "Task ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                },
+                "responses": {
+                    "UnauthorizedError": {
+                        "description": "Authentication required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "ValidationError": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "NotFoundError": {
+                        "description": "Resource not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "schemas": {
+                    "User": {
+                        "type": "object",
+                        "required": ["id", "email", "firstName", "lastName", "createdAt"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "description": "Unique user identifier"
+                            },
+                            "email": {
+                                "type": "string",
+                                "format": "email",
+                                "description": "User's email address"
+                            },
+                            "firstName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 50,
+                                "description": "User's first name"
+                            },
+                            "lastName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 50,
+                                "description": "User's last name"
+                            },
+                            "role": {
+                                "$ref": "#/components/schemas/UserRole"
+                            },
+                            "isActive": {
+                                "type": "boolean",
+                                "description": "Whether the user account is active"
+                            },
+                            "createdAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "User creation timestamp"
+                            },
+                            "updatedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Last update timestamp"
+                            }
+                        }
+                    },
+                    "Task": {
+                        "type": "object",
+                        "required": ["id", "title", "status", "createdAt"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "description": "Unique task identifier"
+                            },
+                            "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "description": "Task title"
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 2000,
+                                "description": "Task description"
+                            },
+                            "status": {
+                                "$ref": "#/components/schemas/TaskStatus"
+                            },
+                            "priority": {
+                                "$ref": "#/components/schemas/TaskPriority"
+                            },
+                            "assigneeId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "description": "ID of the user assigned to this task"
+                            },
+                            "assignee": {
+                                "$ref": "#/components/schemas/User"
+                            },
+                            "dueDate": {
+                                "type": "string",
+                                "format": "date",
+                                "description": "Task due date"
+                            },
+                            "tags": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Task tags"
+                            },
+                            "createdAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Task creation timestamp"
+                            },
+                            "updatedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "Last update timestamp"
+                            }
+                        }
+                    },
+                    "UserRole": {
+                        "type": "string",
+                        "enum": ["admin", "manager", "member"],
+                        "description": "User role in the system"
+                    },
+                    "TaskStatus": {
+                        "type": "string",
+                        "enum": ["todo", "in_progress", "review", "done"],
+                        "description": "Current status of the task"
+                    },
+                    "TaskPriority": {
+                        "type": "string",
+                        "enum": ["low", "medium", "high", "urgent"],
+                        "description": "Task priority level"
+                    },
+                    "LoginRequest": {
+                        "type": "object",
+                        "required": ["email", "password"],
+                        "properties": {
+                            "email": {
+                                "type": "string",
+                                "format": "email",
+                                "description": "User's email address"
+                            },
+                            "password": {
+                                "type": "string",
+                                "minLength": 8,
+                                "description": "User's password"
+                            }
+                        }
+                    },
+                    "AuthResponse": {
+                        "type": "object",
+                        "required": ["accessToken", "user"],
+                        "properties": {
+                            "accessToken": {
+                                "type": "string",
+                                "description": "JWT access token"
+                            },
+                            "refreshToken": {
+                                "type": "string",
+                                "description": "JWT refresh token"
+                            },
+                            "user": {
+                                "$ref": "#/components/schemas/User"
+                            }
+                        }
+                    },
+                    "CreateUserRequest": {
+                        "type": "object",
+                        "required": ["email", "firstName", "lastName", "password"],
+                        "properties": {
+                            "email": {
+                                "type": "string",
+                                "format": "email",
+                                "description": "User's email address"
+                            },
+                            "firstName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 50,
+                                "description": "User's first name"
+                            },
+                            "lastName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 50,
+                                "description": "User's last name"
+                            },
+                            "password": {
+                                "type": "string",
+                                "minLength": 8,
+                                "description": "User's password"
+                            },
+                            "role": {
+                                "$ref": "#/components/schemas/UserRole"
+                            }
+                        }
+                    },
+                    "UpdateUserRequest": {
+                        "type": "object",
+                        "properties": {
+                            "firstName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 50,
+                                "description": "User's first name"
+                            },
+                            "lastName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 50,
+                                "description": "User's last name"
+                            },
+                            "role": {
+                                "$ref": "#/components/schemas/UserRole"
+                            },
+                            "isActive": {
+                                "type": "boolean",
+                                "description": "Whether the user account is active"
+                            }
+                        }
+                    },
+                    "CreateTaskRequest": {
+                        "type": "object",
+                        "required": ["title"],
+                        "properties": {
+                            "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "description": "Task title"
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 2000,
+                                "description": "Task description"
+                            },
+                            "priority": {
+                                "$ref": "#/components/schemas/TaskPriority"
+                            },
+                            "assigneeId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "description": "ID of the user to assign this task to"
+                            },
+                            "dueDate": {
+                                "type": "string",
+                                "format": "date",
+                                "description": "Task due date"
+                            },
+                            "tags": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Task tags"
+                            }
+                        }
+                    },
+                    "UpdateTaskRequest": {
+                        "type": "object",
+                        "properties": {
+                            "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "description": "Task title"
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 2000,
+                                "description": "Task description"
+                            },
+                            "status": {
+                                "$ref": "#/components/schemas/TaskStatus"
+                            },
+                            "priority": {
+                                "$ref": "#/components/schemas/TaskPriority"
+                            },
+                            "assigneeId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "description": "ID of the user to assign this task to"
+                            },
+                            "dueDate": {
+                                "type": "string",
+                                "format": "date",
+                                "description": "Task due date"
+                            },
+                            "tags": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Task tags"
+                            }
+                        }
+                    },
+                    "UsersResponse": {
+                        "type": "object",
+                        "required": ["users", "pagination"],
+                        "properties": {
+                            "users": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            },
+                            "pagination": {
+                                "$ref": "#/components/schemas/Pagination"
+                            }
+                        }
+                    },
+                    "TasksResponse": {
+                        "type": "object",
+                        "required": ["tasks", "pagination"],
+                        "properties": {
+                            "tasks": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            },
+                            "pagination": {
+                                "$ref": "#/components/schemas/Pagination"
+                            }
+                        }
+                    },
+                    "Pagination": {
+                        "type": "object",
+                        "required": ["page", "limit", "total", "totalPages"],
+                        "properties": {
+                            "page": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "description": "Current page number"
+                            },
+                            "limit": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "description": "Number of items per page"
+                            },
+                            "total": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Total number of items"
+                            },
+                            "totalPages": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Total number of pages"
+                            }
+                        }
+                    },
+                    "Error": {
+                        "type": "object",
+                        "required": ["error", "message"],
+                        "properties": {
+                            "error": {
+                                "type": "string",
+                                "description": "Error code"
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "Human-readable error message"
+                            }
+                        }
+                    },
+                    "ValidationError": {
+                        "type": "object",
+                        "required": ["error", "message", "details"],
+                        "properties": {
+                            "error": {
+                                "type": "string",
+                                "description": "Error code"
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "Human-readable error message"
+                            },
+                            "details": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "field": {
+                                            "type": "string",
+                                            "description": "Field that failed validation"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Validation error message"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    {
+                        "name": "Authentication",
+                        "description": "Authentication and authorization operations"
+                    },
+                    {
+                        "name": "Users",
+                        "description": "User management operations"
+                    },
+                    {
+                        "name": "Tasks",
+                        "description": "Task management operations"
+                    }
+                ]
+            }
+        };
+
+        // State management
+        let currentEndpoint = null;
+        const expandedGroups = new Set();
+
+        // Group endpoints by tag
+        function groupEndpointsByTag() {
+            const groups = {};
+            Object.entries(apiSpec.paths).forEach(([path, methods]) => {
+                Object.entries(methods).forEach(([method, operation]) => {
+                    if (operation.tags) {
+                        operation.tags.forEach(tag => {
+                            if (!groups[tag]) groups[tag] = [];
+                            groups[tag].push({
+                                path,
+                                method: method.toUpperCase(),
+                                operation,
+                                operationId: operation.operationId
+                            });
+                        });
+                    }
+                });
+            });
+            return groups;
+        }
+
+        // Method colors
+        const methodColors = {
+            GET: 'bg-blue-100 text-blue-700',
+            POST: 'bg-green-100 text-green-700',
+            PUT: 'bg-yellow-100 text-yellow-700',
+            DELETE: 'bg-red-100 text-red-700',
+            PATCH: 'bg-purple-100 text-purple-700'
+        };
+
+        // Initialize sidebar
+        function initializeSidebar() {
+            const groups = groupEndpointsByTag();
+            const container = document.getElementById('api-groups');
+            
+            Object.entries(groups).forEach(([tag, endpoints]) => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'mb-4';
+                
+                // Group header
+                const header = document.createElement('button');
+                header.className = 'w-full flex items-center justify-between p-2 rounded hover:bg-gray-100 transition-colors';
+                header.innerHTML = `
+                    <span class="font-semibold text-gray-900">${tag}</span>
+                    <svg class="w-4 h-4 transition-transform ${expandedGroups.has(tag) ? 'rotate-90' : ''}" id="chevron-${tag}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                `;
+                header.onclick = () => toggleGroup(tag);
+                
+                // Endpoints list
+                const list = document.createElement('div');
+                list.id = `group-${tag}`;
+                list.className = `ml-2 space-y-1 ${expandedGroups.has(tag) ? '' : 'hidden'}`;
+                
+                endpoints.forEach(endpoint => {
+                    const item = document.createElement('button');
+                    item.className = 'w-full text-left p-2 rounded hover:bg-gray-100 transition-colors flex items-center gap-2';
+                    item.id = `endpoint-${endpoint.operationId}`;
+                    item.innerHTML = `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${methodColors[endpoint.method]}">
+                            ${endpoint.method}
+                        </span>
+                        <div class="flex-1 text-left">
+                            <div class="text-sm">${endpoint.operation.summary}</div>
+                            <div class="text-xs text-gray-500 font-mono">${endpoint.path}</div>
+                        </div>
+                    `;
+                    item.onclick = () => showEndpoint(endpoint);
+                    list.appendChild(item);
+                });
+                
+                groupDiv.appendChild(header);
+                groupDiv.appendChild(list);
+                container.appendChild(groupDiv);
+            });
+            
+            // Expand first group by default
+            const firstTag = Object.keys(groups)[0];
+            if (firstTag) {
+                expandedGroups.add(firstTag);
+                document.getElementById(`group-${firstTag}`).classList.remove('hidden');
+            }
+        }
+
+        // Toggle group expansion
+        function toggleGroup(tag) {
+            const group = document.getElementById(`group-${tag}`);
+            const chevron = document.getElementById(`chevron-${tag}`);
+            
+            if (expandedGroups.has(tag)) {
+                expandedGroups.delete(tag);
+                group.classList.add('hidden');
+                chevron.classList.remove('rotate-90');
+            } else {
+                expandedGroups.add(tag);
+                group.classList.remove('hidden');
+                chevron.classList.add('rotate-90');
+            }
+        }
+
+        // Show overview
+        function showOverview() {
+            currentEndpoint = null;
+            updateActiveState();
+            
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-4">${apiSpec.info.title}</h1>
+                    <p class="text-lg text-gray-600 mb-2">Version ${apiSpec.info.version}</p>
+                    <p class="text-gray-700 mb-8">${apiSpec.info.description}</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-3">Contact</h2>
+                            <p class="text-gray-700">${apiSpec.info.contact.name}</p>
+                            <a href="mailto:${apiSpec.info.contact.email}" class="text-blue-600 hover:underline">
+                                ${apiSpec.info.contact.email}
+                            </a>
+                            <p class="mt-1">
+                                <a href="${apiSpec.info.contact.url}" class="text-blue-600 hover:underline" target="_blank">
+                                    Support Website →
+                                </a>
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-3">License & Terms</h2>
+                            <p>
+                                <a href="${apiSpec.info.license.url}" class="text-blue-600 hover:underline" target="_blank">
+                                    ${apiSpec.info.license.name}
+                                </a>
+                            </p>
+                            <p class="mt-1">
+                                <a href="${apiSpec.info.termsOfService}" class="text-blue-600 hover:underline" target="_blank">
+                                    Terms of Service →
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-3">Available Servers</h2>
+                        <div class="space-y-2">
+                            ${apiSpec.servers.map(server => `
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <code class="text-sm font-mono text-gray-800">${server.url}</code>
+                                    <p class="text-sm text-gray-600 mt-1">${server.description}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-3">Authentication</h2>
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <p class="text-gray-700 mb-2">
+                                This API uses <strong>Bearer Authentication</strong> (JWT tokens).
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                Include your token in the Authorization header:
+                            </p>
+                            <code class="block mt-2 bg-gray-800 text-gray-100 p-3 rounded text-sm">
+                                Authorization: Bearer YOUR_JWT_TOKEN
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show endpoint details
+        function showEndpoint(endpoint) {
+            currentEndpoint = endpoint.operationId;
+            updateActiveState();
+            
+            const content = document.getElementById('content');
+            const statusColors = {
+                '2': 'text-green-600',
+                '4': 'text-orange-600',
+                '5': 'text-red-600'
+            };
+            
+            content.innerHTML = `
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded text-sm font-semibold ${methodColors[endpoint.method]}">
+                            ${endpoint.method}
+                        </span>
+                        <code class="text-lg font-mono text-gray-800 bg-gray-100 px-3 py-1 rounded">${endpoint.path}</code>
+                    </div>
+                    
+                    <h1 class="text-3xl font-bold text-gray-900 mb-4">${endpoint.operation.summary}</h1>
+                    
+                    ${endpoint.operation.description ? `<p class="text-gray-700 mb-6">${endpoint.operation.description}</p>` : ''}
+                    
+                    ${endpoint.operation.security ? `
+                        <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <p class="text-sm text-yellow-800 font-medium">
+                                🔒 This endpoint requires authentication (Bearer token)
+                            </p>
+                        </div>
+                    ` : ''}
+                    
+                    ${endpoint.operation.parameters && endpoint.operation.parameters.length > 0 ? `
+                        <div class="mb-8">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-3">Parameters</h2>
+                            <div class="bg-gray-50 rounded-lg p-4 overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="text-left text-sm font-medium text-gray-700 border-b">
+                                            <th class="pb-2 pr-4">Name</th>
+                                            <th class="pb-2 pr-4">Type</th>
+                                            <th class="pb-2 pr-4">In</th>
+                                            <th class="pb-2 pr-4">Required</th>
+                                            <th class="pb-2">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm">
+                                        ${endpoint.operation.parameters.map(param => {
+                                            const paramRef = param.$ref ? resolveRef(param.$ref) : param;
+                                            return `
+                                                <tr class="border-t">
+                                                    <td class="py-2 pr-4 font-mono">${paramRef.name}</td>
+                                                    <td class="py-2 pr-4">${paramRef.schema?.type || 'string'}</td>
+                                                    <td class="py-2 pr-4">${paramRef.in}</td>
+                                                    <td class="py-2 pr-4">
+                                                        ${paramRef.required ? 
+                                                            '<span class="text-red-600 font-medium">Yes</span>' : 
+                                                            '<span class="text-gray-500">No</span>'
+                                                        }
+                                                    </td>
+                                                    <td class="py-2 text-gray-600">${paramRef.description || '-'}</td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${endpoint.operation.requestBody ? `
+                        <div class="mb-8">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-3">
+                                Request Body
+                                ${endpoint.operation.requestBody.required ? 
+                                    '<span class="ml-2 text-sm bg-red-100 text-red-700 px-2 py-1 rounded">Required</span>' : 
+                                    ''
+                                }
+                            </h2>
+                            ${Object.entries(endpoint.operation.requestBody.content || {}).map(([contentType, content]) => `
+                                <div class="mb-4">
+                                    <div class="text-sm font-mono text-gray-600 mb-2">${contentType}</div>
+                                    ${content.schema ? `
+                                        <div class="bg-gray-50 rounded-lg p-4">
+                                            ${renderSchema(content.schema)}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-3">Responses</h2>
+                        <div class="space-y-4">
+                            ${Object.entries(endpoint.operation.responses).map(([statusCode, response]) => {
+                                const responseRef = response.$ref ? resolveRef(response.$ref) : response;
+                                return `
+                                    <div class="border border-gray-200 rounded-lg p-4">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <span class="font-mono font-bold text-lg ${statusColors[statusCode[0]] || 'text-gray-600'}">
+                                                ${statusCode}
+                                            </span>
+                                            <span class="text-gray-700">${responseRef.description}</span>
+                                        </div>
+                                        
+                                        ${responseRef.content ? Object.entries(responseRef.content).map(([contentType, content]) => `
+                                            <div class="mt-3">
+                                                <div class="text-sm font-mono text-gray-600 mb-2">${contentType}</div>
+                                                ${content.schema ? `
+                                                    <div class="bg-gray-50 rounded-lg p-4">
+                                                        ${renderSchema(content.schema)}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        `).join('') : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Resolve $ref references
+        function resolveRef(ref) {
+            const parts = ref.replace('#/', '').split('/');
+            let current = apiSpec;
+            for (const part of parts) {
+                current = current[part];
+            }
+            return current;
+        }
+
+        // Render schema
+        function renderSchema(schema, level = 0) {
+            const indent = level * 20;
+            const resolved = schema.$ref ? resolveRef(schema.$ref) : schema;
+            
+            if (resolved.$ref) {
+                return renderSchema(resolved, level);
+            }
+            
+            let html = '<div style="margin-left: ' + indent + 'px;">';
+            
+            if (resolved.type === 'object') {
+                html += `<div class="text-sm text-gray-600">
+                    <span class="font-medium">Type:</span> object
+                    ${resolved.description ? `<span> - ${resolved.description}</span>` : ''}
+                </div>`;
+                
+                if (resolved.required && resolved.required.length > 0) {
+                    html += `<div class="text-sm text-gray-600 mt-1">
+                        <span class="font-medium">Required:</span> ${resolved.required.join(', ')}
+                    </div>`;
+                }
+                
+                if (resolved.properties) {
+                    html += '<div class="mt-2 space-y-2">';
+                    Object.entries(resolved.properties).forEach(([propName, propSchema]) => {
+                        html += `<div class="border-l-2 border-gray-200 pl-3">
+                            <div class="flex items-baseline gap-2">
+                                <code class="text-sm font-semibold text-gray-900">${propName}</code>
+                                ${resolved.required?.includes(propName) ? 
+                                    '<span class="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">required</span>' : 
+                                    ''
+                                }
+                            </div>
+                            ${renderSchema(propSchema, level + 1)}
+                        </div>`;
+                    });
+                    html += '</div>';
+                }
+            } else if (resolved.type === 'array') {
+                html += `<div class="text-sm text-gray-600">
+                    <span class="font-medium">Type:</span> array
+                    ${resolved.description ? `<span> - ${resolved.description}</span>` : ''}
+                </div>`;
+                
+                if (resolved.items) {
+                    html += '<div class="mt-1">';
+                    html += '<span class="text-sm text-gray-600">Items:</span>';
+                    html += renderSchema(resolved.items, level + 1);
+                    html += '</div>';
+                }
+            } else if (resolved.enum) {
+                html += `<div class="text-sm text-gray-600">
+                    <span class="font-medium">Type:</span> ${resolved.type}
+                    ${resolved.description ? `<span> - ${resolved.description}</span>` : ''}
+                    <div class="mt-1">
+                        <span>Enum: </span>
+                        ${resolved.enum.map(value => 
+                            `<code class="bg-gray-100 px-1 rounded">${value}</code>`
+                        ).join(', ')}
+                    </div>
+                </div>`;
+            } else {
+                html += `<div class="text-sm text-gray-600">
+                    <span class="font-medium">Type:</span> ${resolved.type || 'any'}
+                    ${resolved.format ? `<span> (${resolved.format})</span>` : ''}
+                    ${resolved.description ? `<span> - ${resolved.description}</span>` : ''}
+                    ${resolved.minimum !== undefined ? `<span> (min: ${resolved.minimum})</span>` : ''}
+                    ${resolved.maximum !== undefined ? `<span> (max: ${resolved.maximum})</span>` : ''}
+                    ${resolved.minLength !== undefined ? `<span> (minLength: ${resolved.minLength})</span>` : ''}
+                    ${resolved.maxLength !== undefined ? `<span> (maxLength: ${resolved.maxLength})</span>` : ''}
+                </div>`;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        // Update active state in sidebar
+        function updateActiveState() {
+            // Reset all buttons
+            document.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'text-blue-700', 'border-l-4', 'border-blue-700');
+            });
+            
+            // Set active state
+            if (currentEndpoint) {
+                const btn = document.getElementById(`endpoint-${currentEndpoint}`);
+                if (btn) {
+                    btn.classList.add('bg-blue-50', 'text-blue-700', 'border-l-4', 'border-blue-700');
+                }
+            } else {
+                const overviewBtn = document.getElementById('overview-btn');
+                if (overviewBtn) {
+                    overviewBtn.classList.add('bg-blue-50', 'text-blue-700');
+                }
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSidebar();
+            showOverview();
+        });
+    </script>
+</body>
+</html>
+        
